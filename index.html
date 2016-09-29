@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title>Document</title>
-    <script src="vtgeojson.js"></script>
+    <script src="libs/vtgeojson.js"></script>
+
+    <script src="//cdn.bootcss.com/q.js/1.4.1/q.js"></script>
     <link href="//cdn.bootcss.com/leaflet/1.0.0-rc.3/leaflet.css" rel="stylesheet">
     <script src="//cdn.bootcss.com/leaflet/1.0.0-rc.3/leaflet-src.js"></script>
+        <script src="libs/leaflet-heat.js"></script>
     <style>
         body {
           padding: 0;
@@ -22,6 +25,8 @@
 
 
        function vt2geojson(tile){
+            var deferred = Q.defer();
+
             var layers= 'pois'
             var tiles = "tilejson+http://localhost:8000/tilejson.json"
             vtgeojson(tiles, {
@@ -30,10 +35,9 @@
             })
             .on('data', function (data) {
             featurecollection.features.push(data)
+                        return deferred.promise;
             })
-            .on('end', function () {
-            console.log('<pre>' + JSON.stringify(featurecollection, null, 2) + '</pre>')
-        })
+
         }
 
         function latlng2tilenum (lat_deg, lng_deg, zoom) {
@@ -56,14 +60,27 @@
 
         var northwest = latlng2tilenum(bounds.getNorth(),bounds.getWest(),zoom)
         var southeast = latlng2tilenum(bounds.getSouth(),bounds.getEast(),zoom)
+
+       var promises =[];
+
         for (var x= northwest[0]; x<= southeast[0];x++){
             for(var y = northwest[1]; y<= southeast[1]; y++){
                 var tile = [x,y,zoom];
-                vt2geojson(tile)
+                promises.push(vt2geojson(tile));
             }
         }
-        var tile =[6688,3569,13]
-       
+        Q.all(promises).then(function(){
+            console.log(featurecollection);
+
+            // var points =[]; 
+            // var features = featurecollection.features;
+            // var count = features.length;
+            // for(var i=0;i<count;i++){
+            //     points.push(features[i].geometry.coordinates);
+            // }
+            // console.log(points);
+        })
+
 
     </script>
 </body>
