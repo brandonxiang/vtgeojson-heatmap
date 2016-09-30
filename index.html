@@ -31,7 +31,7 @@
             var deferred = Q.defer();
 
             var layers = 'poi_label'
-            var tiles = "tilejson+http://localhost:8000/tilejson.json"
+            var tiles = "tilejson+https://brandonxiang.github.io/vtgeojson-heatmap/tilejson.json"
             vtgeojson(tiles, {
                     tiles: [tile],
                     layers: layers ? layers.split(',') : undefined
