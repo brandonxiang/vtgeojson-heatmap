@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <script src="libs/vtgeojson.js"></script>
+
+    <script src="//cdn.bootcss.com/q.js/1.4.1/q.js"></script>
+    <link href="//cdn.bootcss.com/leaflet/1.0.0-rc.3/leaflet.css" rel="stylesheet">
+    <script src="//cdn.bootcss.com/leaflet/1.0.0-rc.3/leaflet-src.js"></script>
+    <script src="libs/leaflet-heat.js"></script>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        
+        html,
+        body,
+        #map {
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script>
+        function vt2geojson(tile) {
+            var deferred = Q.defer();
+
+            var layers = 'poi_label'
+            var tiles = "tilejson+http://localhost:8000/tilejson.json"
+            vtgeojson(tiles, {
+                    tiles: [tile],
+                    layers: layers ? layers.split(',') : undefined
+                })
+                .on('data', function(data) {
+                    featurecollection.features.push(data)
+                    deferred.resolve("1");
+                })
+            return deferred.promise;
+        }
+
+        function latlng2tilenum(lat_deg, lng_deg, zoom) {
+            var n = Math.pow(2, zoom)
+            var xtile = ((lng_deg + 180) / 360) * n
+            var lat_rad = lat_deg / 180 * Math.PI
+            var ytile = (1 - (Math.log(Math.tan(lat_rad) + 1 / Math.cos(lat_rad)) / Math.PI)) / 2 * n
+            return [Math.floor(xtile), Math.floor(ytile)]
+        }
+
+        var featurecollection = {
+            type: 'FeatureCollection',
+            features: []
+        }
+        var map = L.map('map').setView([22.5444235638, 113.9848308011], 13);
+
+        var tilelayer = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        var zoom = map.getZoom();
+        var bounds = map.getBounds();
+
+        var northwest = latlng2tilenum(bounds.getNorth(), bounds.getWest(), zoom)
+        var southeast = latlng2tilenum(bounds.getSouth(), bounds.getEast(), zoom)
+
+        var promises = [];
+
+        for (var x = northwest[0]; x <= southeast[0]; x++) {
+            for (var y = northwest[1]; y <= southeast[1]; y++) {
+                var tile = [x, y, zoom];
+                promises.push(vt2geojson(tile));
+            }
+        }
+        Q.all(promises).then(function() {
+            console.log(featurecollection);
+
+            var points = [];
+            var features = featurecollection.features;
+            var count = features.length;
+            for (var i = 0; i < count; i++) {
+                points.push([features[i].geometry.coordinates[1], features[i].geometry.coordinates[0]]);
+            }
+            console.log(points);
+            var heat = L.heatLayer(points, {
+                blur: 30,
+                radius: 50
+            }).addTo(map);
+        })
+    </script>
+</body>
+
+</html>
