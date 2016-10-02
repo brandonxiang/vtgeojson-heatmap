@@ -1,11 +1,9 @@
 L.VtGeojsonHeat = L.GridLayer.extend({
 
     initialize: function (map, options) {
-        this.featurecollection = {
-            type: 'FeatureCollection',
-            features: []
-        }
-        this.heat = L.heatLayer([]).addTo(map)
+        this.initFeatureCollection();
+        this._heat = L.heatLayer([]).addTo(map);
+        this._zoom = map.getZoom();
         L.setOptions(this, options);
     },
 
@@ -15,7 +13,21 @@ L.VtGeojsonHeat = L.GridLayer.extend({
         return L.DomUtil.create("div");
     },
 
+    initFeatureCollection:function(){
+        this._featurecollection = {
+            type: 'FeatureCollection',
+            features: []
+        }
+    },
+
+    getFeatureCollection:function(){
+        return this._featurecollection;
+    },
+
     vt2geojson: function (tile) {
+        if(this._zoom !== tile[2]){
+            this.initFeatureCollection();
+        }
         var that = this;
         var layers = 'poi_label'
         var tiles = "tilejson+http://localhost:8000/tilejson.json"
@@ -24,9 +36,9 @@ L.VtGeojsonHeat = L.GridLayer.extend({
             layers: layers ? layers.split(',') : undefined
         })
         .on('data', function (data) {
-            that.featurecollection.features.push(data)
+            that._featurecollection.features.push(data)
             var coord = [data.geometry.coordinates[1], data.geometry.coordinates[0]];
-            that.heat.addLatLng(coord);
+            that._heat.addLatLng(coord);
         })
     }
 });
