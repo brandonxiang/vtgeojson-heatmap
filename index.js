@@ -26,7 +26,9 @@ L.VtGeojsonHeat = L.GridLayer.extend({
 
     vt2geojson: function (tile) {
         if(this._zoom !== tile[2]){
+            this._zoom = tile[2];
             this.initFeatureCollection();
+            this._heat._latlngs= [];
         }
         var that = this;
         var layers = 'poi_label'
