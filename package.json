@@ -1,0 +1,22 @@
+{
+  "name": "vtgeojson-heatmap",
+  "version": "1.0.0",
+  "description": "A demo using vtgeojson and heatmap",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brandonxiang/vtgeojson-heatmap.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/brandonxiang/vtgeojson-heatmap/issues"
+  },
+  "homepage": "https://github.com/brandonxiang/vtgeojson-heatmap#readme",
+  "dependencies": {
+    "leaflet-heatmap": "^1.0.0"
+  }
+}
